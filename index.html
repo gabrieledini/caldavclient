@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agenda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f6f9;--surface:#ffffff;--surface2:#eceef3;--line:#e1e4ea;--ink:#141821;--muted:#6b7280;
+  --accent:#2f6df6;--accent-ink:#fff;--danger:#d84c4c;--ok:#1f9d55;--shadow:0 10px 30px rgba(20,24,33,.10);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1218;--surface:#171b24;--surface2:#1f2531;--line:#262d3a;--ink:#eef1f6;--muted:#8b93a3;--accent:#6b9cff;--accent-ink:#0b1020;--shadow:0 10px 30px rgba(0,0,0,.45)}}
+:root[data-theme="dark"]{--bg:#0f1218;--surface:#171b24;--surface2:#1f2531;--line:#262d3a;--ink:#eef1f6;--muted:#8b93a3;--accent:#6b9cff;--accent-ink:#0b1020;--shadow:0 10px 30px rgba(0,0,0,.45)}
+*{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Manrope,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+button{background:var(--surface2);border:0;border-radius:12px;padding:.55rem .9rem;cursor:pointer;font-weight:600}
+button:hover{filter:brightness(.97)}
+button.primary{background:var(--accent);color:var(--accent-ink)}
+button.danger{background:transparent;color:var(--danger)}
+button.ghost{background:transparent;color:var(--muted)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input,textarea,select{width:100%;background:var(--surface2);border:1px solid transparent;border-radius:12px;padding:.65rem .8rem}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);outline:none;background:var(--surface)}
+textarea{min-height:5rem;resize:vertical}
+label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin:.9rem 0 .3rem}
+code{background:var(--surface2);padding:.1em .35em;border-radius:6px;font-size:.85em}
+
+.wrap{max-width:680px;margin:0 auto;padding:0 1rem 7rem}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:1rem 0 .6rem}
+.top .title{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem}
+.top h1{margin:0;font-size:1.7rem;font-weight:800;letter-spacing:-.02em;text-transform:capitalize;line-height:1.1}
+.top .range{color:var(--muted);font-size:.9rem;font-weight:500;margin-top:.15rem}
+.nav{display:flex;gap:.4rem}
+.nav button{width:2.4rem;height:2.4rem;padding:0;border-radius:50%;display:grid;place-items:center;font-size:1.1rem}
+.nav .word{width:auto;border-radius:999px;padding:0 .9rem;font-size:.85rem}
+.chips{display:flex;gap:.5rem;overflow-x:auto;padding:.7rem 0 .2rem;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{--c:var(--muted);display:inline-flex;align-items:center;gap:.5rem;white-space:nowrap;border-radius:999px;padding:.4rem .85rem .4rem .6rem;font-size:.85rem;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.chip i{width:.75rem;height:.75rem;border-radius:50%;background:var(--c);opacity:.35}
+.chip.on{color:var(--ink);border-color:transparent;background:color-mix(in srgb,var(--c) 14%,var(--surface))}
+.chip.on i{opacity:1}
+.status{font-size:.85rem;color:var(--muted);min-height:1.2rem;margin:.4rem 0}
+
+.day{display:grid;grid-template-columns:3.2rem 1fr;gap:.8rem;padding:.7rem 0}
+.day+.day{border-top:1px solid var(--line)}
+.dh{background:none;padding:.15rem 0 0;display:flex;flex-direction:column;align-items:center;gap:0;border-radius:14px;color:var(--muted);line-height:1}
+.dh b{font-size:1.5rem;font-weight:800;color:var(--ink);letter-spacing:-.03em}
+.dh span{font-size:.7rem;text-transform:lowercase;margin-top:.15rem}
+.today .dh b{background:var(--accent);color:var(--accent-ink);width:2.4rem;height:2.4rem;border-radius:50%;display:grid;place-items:center;font-size:1.2rem}
+.today .dh span{color:var(--accent);font-weight:700}
+.col{display:flex;flex-direction:column;gap:.45rem;min-width:0}
+.empty{color:var(--muted);font-size:.85rem;padding:.55rem 0}
+.ev{--c:var(--accent);display:grid;grid-template-columns:1fr auto;gap:.3rem .8rem;align-items:start;background:var(--surface);border-radius:14px;padding:.65rem .85rem .65rem 1rem;position:relative;cursor:pointer;box-shadow:0 1px 2px rgba(20,24,33,.05)}
+.ev::before{content:"";position:absolute;left:0;top:.7rem;bottom:.7rem;width:4px;border-radius:4px;background:var(--c)}
+.ev:hover{background:color-mix(in srgb,var(--c) 8%,var(--surface))}
+.ev .s{font-weight:600;overflow:hidden;text-overflow:ellipsis;order:1}
+.ev .t{order:2;color:var(--muted);font-size:.8rem;font-weight:600;white-space:nowrap;padding-top:.1rem}
+.ev .l{display:block;font-weight:400;color:var(--muted);font-size:.8rem;margin-top:.1rem}
+.ev.ro{cursor:default}
+
+.fab{position:fixed;right:max(1rem,calc(50% - 340px + 1rem));bottom:calc(1.4rem + env(safe-area-inset-bottom,0px));width:3.6rem;height:3.6rem;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:1.8rem;font-weight:400;box-shadow:var(--shadow);display:grid;place-items:center;padding:0;z-index:6}
+
+.overlay{position:fixed;inset:0;background:rgba(10,12,18,.45);backdrop-filter:blur(4px);display:flex;align-items:flex-end;justify-content:center;z-index:10}
+.overlay[hidden]{display:none}
+.sheet{background:var(--surface);border-radius:22px 22px 0 0;width:100%;max-width:560px;max-height:92%;overflow:auto;padding:.6rem 1.2rem calc(1.2rem + env(safe-area-inset-bottom,0px));box-shadow:var(--shadow)}
+.sheet::before{content:"";display:block;width:2.4rem;height:4px;border-radius:2px;background:var(--line);margin:0 auto .9rem}
+@media(min-width:600px){.overlay{align-items:center}.sheet{border-radius:22px}.sheet::before{display:none}}
+.sheet h3{margin:.2rem 0 .2rem;font-size:1.25rem;font-weight:800;letter-spacing:-.01em}
+.sheet p{color:var(--muted);font-size:.85rem;margin:.3rem 0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
+.check{display:flex;align-items:center;gap:.6rem;margin-top:1rem;font-weight:500;color:var(--ink);font-size:.95rem}
+.check input{width:1.15rem;height:1.15rem;accent-color:var(--accent);padding:0}
+.row{display:flex;gap:.5rem;margin-top:1.3rem;align-items:center}
+.row .primary{flex:1;padding:.8rem}
+details{margin-top:1rem}
+summary{cursor:pointer;color:var(--muted);font-size:.85rem;font-weight:600}
+.log{background:var(--surface2);border-radius:12px;padding:.6rem .8rem;font:.75rem/1.5 ui-monospace,Menlo,Consolas,monospace;color:var(--muted);max-height:9rem;overflow:auto;margin-top:.5rem}
+.log .ok{color:var(--ok)}.log .err{color:var(--danger)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="title">
+      <div><h1 id="month"></h1><div class="range" id="range"></div></div>
+      <div class="nav">
+        <button id="prev" aria-label="Settimana precedente">‹</button>
+        <button id="today" class="word">Oggi</button>
+        <button id="next" aria-label="Settimana successiva">›</button>
+        <button id="btnCfg" aria-label="Impostazioni">⚙</button>
+      </div>
+    </div>
+    <div class="chips" id="chips"></div>
+  </div>
+  <div class="status" id="status"></div>
+  <div id="days"></div>
+</div>
+
+<button class="fab" id="fab" aria-label="Nuovo evento">+</button>
+
+<div class="overlay" id="cfgPanel" hidden>
+  <div class="sheet">
+    <h3>Server CalDAV</h3>
+    <p>URL della radice DAV, del principal o di un calendario. Nextcloud: <code>https://host/remote.php/dav/</code> · Baïkal: <code>https://host/dav.php/</code> · Radicale: <code>https://host/</code></p>
+    <label for="fUrl">URL</label><input id="fUrl" type="url" placeholder="https://…" autocomplete="off">
+    <div class="two">
+      <div><label for="fUser">Utente</label><input id="fUser" autocomplete="username"></div>
+      <div><label for="fPass">App password</label><input id="fPass" type="password" autocomplete="current-password"></div>
+    </div>
+    <label for="fProxy">Proxy CORS</label>
+    <input id="fProxy" placeholder="/.netlify/functions/caldav?url=">
+    <p>Quasi nessun server CalDAV consente chiamate dirette dal browser: il proxy riceve l'URL di destinazione codificato dopo questo prefisso.</p>
+    <div class="row">
+      <button id="btnDiscover" class="primary">Salva e cerca calendari</button>
+      <button id="cfgClose" class="ghost">Chiudi</button>
+    </div>
+    <div class="status" id="cfgStatus"></div>
+    <details><summary>Richieste</summary><div class="log" id="log"></div></details>
+    <div class="row"><button id="btnForget" class="danger">Dimentica credenziali</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <form class="sheet" id="evForm">
+    <h3 id="evTitle">Nuovo evento</h3>
+    <label for="eSummary">Titolo</label><input id="eSummary" required placeholder="Es. Riunione con il team">
+    <label for="eCal">Calendario</label><select id="eCal"></select>
+    <label class="check"><input type="checkbox" id="eAllDay"> Tutto il giorno</label>
+    <div class="two">
+      <div><label for="eStart">Inizio</label><input id="eStart" type="datetime-local" required></div>
+      <div><label for="eEnd">Fine</label><input id="eEnd" type="datetime-local" required></div>
+    </div>
+    <label for="eLoc">Luogo</label><input id="eLoc">
+    <label for="eDesc">Note</label><textarea id="eDesc"></textarea>
+    <div class="row">
+      <button type="submit" class="primary" id="eSave">Salva</button>
+      <button type="button" id="eDelete" class="danger">Elimina</button>
+      <button type="button" id="eCancel" class="ghost">Annulla</button>
+    </div>
+    <div class="status" id="evStatus"></div>
+  </form>
+</div>
+
+<script>
+/* ===== stato ===== */
+const LS='caldav-agenda';
+const NS={d:'DAV:',c:'urn:ietf:params:xml:ns:caldav',ic:'http://apple.com/ns/ical/'};
+let cfg={url:'',user:'',pass:'',proxy:'',calendars:[],active:[]};
+let weekStart=startOfWeek(new Date());
+let events=[];
+let editing=null;
+
+const $=id=>document.getElementById(id);
+try{const s=localStorage.getItem(LS);if(s)cfg={...cfg,...JSON.parse(s)}}catch{}
+function persist(){try{localStorage.setItem(LS,JSON.stringify(cfg))}catch{}}
+
+/* ===== log terminale ===== */
+function log(msg,cls=''){
+  const el=$('log');const d=document.createElement('div');
+  d.className=cls;d.textContent=`${new Date().toLocaleTimeString('it-IT')} ${msg}`;
+  el.appendChild(d);while(el.children.length>8)el.removeChild(el.firstChild);el.scrollTop=el.scrollHeight;
+}
+
+/* ===== trasporto DAV ===== */
+function absUrl(href){
+  if(/^https?:/i.test(href))return href;
+  return new URL(cfg.url).origin+href;
+}
+function target(u){return cfg.proxy?cfg.proxy+encodeURIComponent(u):u}
+async function dav(method,url,{headers={},body}={}){
+  const h={...headers};
+  if(cfg.user)h.Authorization='Basic '+btoa(unescape(encodeURIComponent(cfg.user+':'+cfg.pass)));
+  log(`${method} ${url.replace(/^https?:\/\//,'')}`);
+  let r;
+  try{r=await fetch(target(url),{method,headers:h,body})}
+  catch(e){log('↳ rete/CORS: '+e.message,'err');throw new Error('Richiesta bloccata (CORS o rete). Configura il proxy.')}
+  const text=await r.text();
+  log(`↳ ${r.status}`,r.ok?'ok':'err');
+  if(!r.ok)throw new Error(`${r.status} ${r.statusText||''}`.trim());
+  return {status:r.status,text,etag:r.headers.get('ETag')};
+}
+const parseXml=t=>new DOMParser().parseFromString(t,'application/xml');
+const el1=(n,ns,tag)=>n.getElementsByTagNameNS(NS[ns],tag)[0];
+const txt=(n,ns,tag)=>{const e=el1(n,ns,tag);return e?e.textContent.trim():''};
+const propfind=(url,depth,props)=>dav('PROPFIND',url,{
+  headers:{Depth:String(depth),'Content-Type':'application/xml; charset=utf-8'},
+  body:`<?xml version="1.0"?><d:propfind xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav" xmlns:ic="http://apple.com/ns/ical/"><d:prop>${props}</d:prop></d:propfind>`
+});
+
+/* ===== discovery calendari ===== */
+async function discover(){
+  const P='<d:resourcetype/><d:displayname/><d:current-user-principal/><c:calendar-home-set/><ic:calendar-color/><c:supported-calendar-component-set/>';
+  let r=await propfind(cfg.url,0,P);
+  let doc=parseXml(r.text);
+  let resp=el1(doc,'d','response');
+  if(resp&&el1(resp,'c','calendar')&&el1(resp,'d','resourcetype').getElementsByTagNameNS(NS.c,'calendar').length){
+    cfg.calendars=[calFrom(resp,cfg.url)];return;
+  }
+  let home=txt(resp||doc,'c','calendar-home-set');
+  if(!home){
+    const princ=txt(resp||doc,'d','current-user-principal');
+    if(princ){
+      r=await propfind(absUrl(princ),0,'<c:calendar-home-set/>');
+      home=txt(parseXml(r.text),'c','calendar-home-set');
+    }
+  }
+  const listUrl=home?absUrl(home):cfg.url;
+  r=await propfind(listUrl,1,P);
+  doc=parseXml(r.text);
+  const out=[];
+  for(const rs of doc.getElementsByTagNameNS(NS.d,'response')){
+    const rt=el1(rs,'d','resourcetype');
+    if(!rt||!rt.getElementsByTagNameNS(NS.c,'calendar').length)continue;
+    const comps=[...rs.getElementsByTagNameNS(NS.c,'comp')].map(c=>c.getAttribute('name'));
+    if(comps.length&&!comps.includes('VEVENT'))continue;
+    out.push(calFrom(rs));
+  }
+  cfg.calendars=out;
+}
+function calFrom(rs,fallbackHref){
+  const href=txt(rs,'d','href')||fallbackHref;
+  const abs=absUrl(href).replace(/\/?$/,'/');
+  return {href:abs,
+    name:txt(rs,'d','displayname')||decodeURIComponent(abs.split('/').filter(Boolean).pop()),
+    color:(txt(rs,'ic','calendar-color')||'#6f8f66').slice(0,7)};
+}
+
+/* ===== eventi ===== */
+const pad=n=>String(n).padStart(2,'0');
+const icsUtc=d=>d.getUTCFullYear()+pad(d.getUTCMonth()+1)+pad(d.getUTCDate())+'T'+pad(d.getUTCHours())+pad(d.getUTCMinutes())+pad(d.getUTCSeconds())+'Z';
+const icsDate=d=>d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate());
+function startOfWeek(d){const x=new Date(d);x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return x}
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+
+async function loadWeek(){
+  const s=weekStart,e=addDays(s,7);
+  const act=cfg.calendars.filter(c=>cfg.active.includes(c.href));
+  events=[];
+  if(!act.length){render();return}
+  $('status').textContent='carico…';
+  const q=exp=>`<?xml version="1.0" encoding="utf-8"?><c:calendar-query xmlns:d="DAV:" xmlns:c="urn:ietf:params:xml:ns:caldav"><d:prop><d:getetag/><c:calendar-data>${exp?`<c:expand start="${icsUtc(s)}" end="${icsUtc(e)}"/>`:''}</c:calendar-data></d:prop><c:filter><c:comp-filter name="VCALENDAR"><c:comp-filter name="VEVENT"><c:time-range start="${icsUtc(s)}" end="${icsUtc(e)}"/></c:comp-filter></c:comp-filter></c:filter></c:calendar-query>`;
+  const hdr={Depth:'1','Content-Type':'application/xml; charset=utf-8'};
+  const errs=[];
+  await Promise.all(act.map(async cal=>{
+    let r;
+    try{r=await dav('REPORT',cal.href,{headers:hdr,body:q(true)})}
+    catch{try{r=await dav('REPORT',cal.href,{headers:hdr,body:q(false)})}catch(e2){errs.push(cal.name+': '+e2.message);return}}
+    const doc=parseXml(r.text);
+    for(const rs of doc.getElementsByTagNameNS(NS.d,'response')){
+      const href=absUrl(txt(rs,'d','href')),etag=txt(rs,'d','getetag');
+      for(const ev of parseIcs(txt(rs,'c','calendar-data'))){
+        ev.href=href;ev.etag=etag;ev.calHref=cal.href;ev.color=cal.color;events.push(ev);
+      }
+    }
+  }));
+  $('status').textContent=errs.join(' · ');
+  render();
+}
+
+function parseIcs(text){
+  if(!text)return[];
+  const lines=text.replace(/\r?\n[ \t]/g,'').split(/\r?\n/);
+  const out=[];let cur=null;
+  for(const line of lines){
+    if(line==='BEGIN:VEVENT'){cur={props:{}};continue}
+    if(line==='END:VEVENT'){if(cur)out.push(toEvent(cur.props));cur=null;continue}
+    if(!cur)continue;
+    const i=line.indexOf(':');if(i<0)continue;
+    const [name,...params]=line.slice(0,i).split(';');
+    cur.props[name.toUpperCase()]={params:Object.fromEntries(params.map(p=>p.split('=')).map(([k,v])=>[k.toUpperCase(),v])),value:line.slice(i+1)};
+  }
+  return out;
+}
+function icsToDate(p){
+  if(!p)return null;
+  const v=p.value;
+  if(p.params.VALUE==='DATE'||/^\d{8}$/.test(v))return new Date(+v.slice(0,4),+v.slice(4,6)-1,+v.slice(6,8));
+  const m=v.match(/^(\d{4})(\d\d)(\d\d)T(\d\d)(\d\d)(\d\d)?(Z)?$/);
+  if(!m)return new Date(v);
+  return m[7]?new Date(Date.UTC(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+(m[6]||0)))
+             :new Date(+m[1],+m[2]-1,+m[3],+m[4],+m[5],+(m[6]||0)); // TZID trattato come ora locale (prototipo)
+}
+const unesc=s=>(s||'').replace(/\\n/gi,'\n').replace(/\\([,;\\])/g,'$1');
+function toEvent(p){
+  const allDay=p.DTSTART?.params.VALUE==='DATE'||/^\d{8}$/.test(p.DTSTART?.value||'');
+  const start=icsToDate(p.DTSTART);
+  let end=icsToDate(p.DTEND);
+  if(!end){end=new Date(start);if(p.DURATION){const m=p.DURATION.value.match(/P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?/);if(m)end=new Date(+start+((+m[1]||0)*864e5+(+m[2]||0)*36e5+(+m[3]||0)*6e4))}else if(allDay)end=addDays(start,1);else end=new Date(+start+36e5)}
+  return {uid:p.UID?.value||'',summary:unesc(p.SUMMARY?.value)||'(senza titolo)',location:unesc(p.LOCATION?.value),
+    description:unesc(p.DESCRIPTION?.value),start,end,allDay,recurring:!!(p.RRULE||p['RECURRENCE-ID'])};
+}
+const esc=s=>(s||'').replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/[,;]/g,'\\$&');
+function fold(l){let o='';while(l.length>72){o+=l.slice(0,72)+'\r\n ';l=l.slice(72)}return o+l}
+function buildIcs(ev){
+  const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//agenda-caldav prototipo//IT','BEGIN:VEVENT',
+    `UID:${ev.uid}`,`DTSTAMP:${icsUtc(new Date())}`,
+    ev.allDay?`DTSTART;VALUE=DATE:${icsDate(ev.start)}`:`DTSTART:${icsUtc(ev.start)}`,
+    ev.allDay?`DTEND;VALUE=DATE:${icsDate(ev.end)}`:`DTEND:${icsUtc(ev.end)}`,
+    `SUMMARY:${esc(ev.summary)}`];
+  if(ev.location)L.push(`LOCATION:${esc(ev.location)}`);
+  if(ev.description)L.push(`DESCRIPTION:${esc(ev.description)}`);
+  L.push('END:VEVENT','END:VCALENDAR');
+  return L.map(fold).join('\r\n')+'\r\n';
+}
+async function saveEvent(ev){
+  const isNew=!ev.href;
+  const href=isNew?ev.calHref+ev.uid+'.ics':ev.href;
+  const headers={'Content-Type':'text/calendar; charset=utf-8'};
+  if(isNew)headers['If-None-Match']='*';else if(ev.etag)headers['If-Match']=ev.etag;
+  await dav('PUT',href,{headers,body:buildIcs(ev)});
+}
+async function deleteEvent(ev){
+  await dav('DELETE',ev.href,{headers:ev.etag?{'If-Match':ev.etag}:{}});
+}
+
+/* ===== render ===== */
+const fmtWd=new Intl.DateTimeFormat('it-IT',{weekday:'short'});
+const fmtRange=new Intl.DateTimeFormat('it-IT',{day:'numeric',month:'short'});
+const fmtTime=new Intl.DateTimeFormat('it-IT',{hour:'2-digit',minute:'2-digit'});
+function render(){
+  $('range').textContent=`${fmtRange.format(weekStart)} – ${fmtRange.format(addDays(weekStart,6))}`;$('month').textContent=new Intl.DateTimeFormat('it-IT',{month:'long',year:'numeric'}).format(addDays(weekStart,3));
+  const chips=$('chips');chips.innerHTML='';
+  for(const c of cfg.calendars){
+    const b=document.createElement('button');b.className='chip'+(cfg.active.includes(c.href)?' on':'');
+    b.style.setProperty('--c',c.color);b.innerHTML=`<i></i>`;b.append(c.name);
+    b.onclick=()=>{cfg.active=cfg.active.includes(c.href)?cfg.active.filter(h=>h!==c.href):[...cfg.active,c.href];persist();loadWeek()};
+    chips.appendChild(b);
+  }
+  const days=$('days');days.innerHTML='';
+  const today=new Date();today.setHours(0,0,0,0);
+  for(let i=0;i<7;i++){
+    const d=addDays(weekStart,i),d2=addDays(d,1);
+    const sec=document.createElement('section');sec.className='day'+(+d===+today?' today':'');
+    const h=document.createElement('button');h.className='dh';h.title='Aggiungi evento';h.innerHTML=`<b>${d.getDate()}</b><span>${fmtWd.format(d)}</span>`;h.onclick=()=>openEditor(null,d);
+    const col=document.createElement('div');col.className='col';sec.append(h,col);
+    const list=events.filter(e=>e.start<d2&&e.end>d&&!(e.allDay&&+e.end===+d))
+      .sort((a,b)=>(b.allDay-a.allDay)||(a.start-b.start));
+    if(!list.length){const p=document.createElement('div');p.className='empty';p.textContent='Nessun evento';col.appendChild(p)}
+    for(const e of list){
+      const row=document.createElement('div');row.className='ev'+(e.recurring?' ro':'');row.style.setProperty('--c',e.color);
+      const t=document.createElement('div');t.className='t';
+      t.textContent=e.allDay?'giornata':(e.start<d?'→ ':'')+fmtTime.format(e.start<d?d:e.start)+(e.end<d2?'–'+fmtTime.format(e.end):'');
+      const s=document.createElement('div');s.className='s';s.textContent=e.summary+(e.recurring?' ↻':'');
+      if(e.location){const l=document.createElement('span');l.className='l';l.textContent=e.location;s.appendChild(l)}
+      row.append(t,s);
+      row.onclick=()=>e.recurring?($('status').textContent='Gli eventi ricorrenti sono in sola lettura in questo prototipo.'):openEditor(e);
+      col.appendChild(row);
+    }
+    days.appendChild(sec);
+  }
+  if(!cfg.calendars.length){$('status').textContent='Nessun calendario: apri le impostazioni e cerca i calendari.'}
+}
+
+/* ===== editor ===== */
+const toLocalInput=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+function openEditor(ev,day){
+  editing=ev;
+  $('evTitle').textContent=ev?'Modifica evento':'Nuovo evento';
+  const sel=$('eCal');sel.innerHTML='';
+  for(const c of cfg.calendars){const o=document.createElement('option');o.value=c.href;o.textContent=c.name;sel.appendChild(o)}
+  sel.disabled=!!ev;
+  if(ev){
+    sel.value=ev.calHref;$('eSummary').value=ev.summary;$('eAllDay').checked=ev.allDay;
+    $('eStart').value=toLocalInput(ev.start);$('eEnd').value=toLocalInput(ev.allDay?addDays(ev.end,-1):ev.end);
+    $('eLoc').value=ev.location||'';$('eDesc').value=ev.description||'';
+  }else{
+    sel.value=cfg.active[0]||cfg.calendars[0]?.href;
+    const s=new Date(day);s.setHours(9,0,0,0);
+    $('eSummary').value='';$('eAllDay').checked=false;
+    $('eStart').value=toLocalInput(s);$('eEnd').value=toLocalInput(new Date(+s+36e5));
+    $('eLoc').value='';$('eDesc').value='';
+  }
+  $('eDelete').hidden=!ev;$('evStatus').textContent='';
+  toggleAllDay();
+  $('overlay').hidden=false;$('eSummary').focus();
+}
+function toggleAllDay(){const a=$('eAllDay').checked;for(const id of['eStart','eEnd']){const i=$(id);const v=i.value;i.type=a?'date':'datetime-local';i.value=a?v.slice(0,10):(v.length===10?v+'T09:00':v)}}
+$('eAllDay').onchange=toggleAllDay;
+$('eCancel').onclick=()=>$('overlay').hidden=true;
+$('overlay').onclick=e=>{if(e.target===$('overlay'))$('overlay').hidden=true};
+$('evForm').onsubmit=async e=>{
+  e.preventDefault();
+  const allDay=$('eAllDay').checked;
+  let start=new Date($('eStart').value),end=new Date($('eEnd').value);
+  if(allDay){start=new Date(start.getFullYear(),start.getMonth(),start.getDate());end=addDays(new Date(end.getFullYear(),end.getMonth(),end.getDate()),1)}
+  if(!(end>start)){$('evStatus').textContent='La fine deve essere dopo l\'inizio.';return}
+  const ev={...(editing||{}),uid:editing?.uid||(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2)),
+    calHref:$('eCal').value,summary:$('eSummary').value.trim(),allDay,start,end,location:$('eLoc').value.trim(),description:$('eDesc').value.trim()};
+  $('eSave').disabled=true;$('evStatus').textContent='salvo…';
+  try{await saveEvent(ev);$('overlay').hidden=true;await loadWeek()}
+  catch(err){$('evStatus').textContent=err.message.startsWith('412')?'Modificato altrove: ricarica e riprova.':err.message}
+  finally{$('eSave').disabled=false}
+};
+$('eDelete').onclick=async()=>{
+  if(!editing||!confirm('Eliminare "'+editing.summary+'"?'))return;
+  try{await deleteEvent(editing);$('overlay').hidden=true;await loadWeek()}catch(err){$('evStatus').textContent=err.message}
+};
+
+/* ===== impostazioni e navigazione ===== */
+$('btnCfg').onclick=()=>{$('cfgPanel').hidden=false};$('cfgClose').onclick=()=>{$('cfgPanel').hidden=true};$('cfgPanel').onclick=e=>{if(e.target===$('cfgPanel'))$('cfgPanel').hidden=true};
+$('fab').onclick=()=>{const t=new Date();t.setHours(0,0,0,0);openEditor(null,(t>=weekStart&&t<addDays(weekStart,7))?t:weekStart)};
+$('fUrl').value=cfg.url;$('fUser').value=cfg.user;$('fPass').value=cfg.pass;$('fProxy').value=cfg.proxy;
+$('btnDiscover').onclick=async()=>{
+  cfg.url=$('fUrl').value.trim();cfg.user=$('fUser').value.trim();cfg.pass=$('fPass').value;cfg.proxy=$('fProxy').value.trim();
+  if(!cfg.url){$('cfgStatus').textContent='Inserisci l\'URL del server.';return}
+  $('cfgStatus').textContent='cerco…';
+  try{
+    await discover();
+    cfg.active=cfg.calendars.map(c=>c.href);persist();
+    $('cfgStatus').textContent=cfg.calendars.length?`${cfg.calendars.length} calendari trovati.`:'Nessun calendario trovato a questo URL.';
+    if(cfg.calendars.length)$('cfgPanel').hidden=true;
+    await loadWeek();
+  }catch(err){$('cfgStatus').textContent=err.message}
+};
+$('btnForget').onclick=()=>{cfg={url:'',user:'',pass:'',proxy:'',calendars:[],active:[]};try{localStorage.removeItem(LS)}catch{}location.reload()};
+$('prev').onclick=()=>{weekStart=addDays(weekStart,-7);loadWeek()};
+$('next').onclick=()=>{weekStart=addDays(weekStart,7);loadWeek()};
+$('today').onclick=()=>{weekStart=startOfWeek(new Date());loadWeek()};
+
+if(cfg.calendars.length)loadWeek();else{render();$('cfgPanel').hidden=false}
+</script>
+</body>
+</html>
